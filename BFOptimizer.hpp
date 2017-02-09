@@ -22,7 +22,7 @@ public:
 		instructions['.'] = new BFOInstruction();
 		instructions[','] = new BFInInstruction();
 		instructions['['] = new BFBOInstruction(totalBracketsCount, brackets);
-		instructions[']'] = new BFBCInstruction(totalBracketsCount, brackets);
+		instructions[']'] = new BFBCInstruction(brackets);
 	}
 	~BFOptimizer() {
 		;

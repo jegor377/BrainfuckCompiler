@@ -191,8 +191,8 @@ public:
 
 	virtual vector<string> getInstructions() {
 		vector<string> instructions;
-		auto startBracketName = "SB" + to_string(*this->totalBracketsCount);
-		auto endBracketName = "EB" + to_string(*this->totalBracketsCount);
+		auto startBracketName = "SB" + to_string(*totalBracketsCount);
+		auto endBracketName = "EB" + to_string(*totalBracketsCount);
 		auto bracket = Bracket{
 			startBracketName,
 			endBracketName
@@ -201,7 +201,7 @@ public:
 		instructions.push_back((startBracketName + ":"));
 		instructions.push_back("cmp byte [ebx + ebp*1], 0");
 		instructions.push_back(("je " + endBracketName));
-		*this->totalBracketsCount++;
+		*totalBracketsCount = *totalBracketsCount + 1;
 		return instructions;
 	}
 };
@@ -209,16 +209,14 @@ public:
 class BFBCInstruction
 	: public BFInstruction
 {
-	unsigned int* totalBracketsCount;
 	stack<Bracket>* brackets;
 
 public:
-	BFBCInstruction(unsigned int* totalBracketsCount, stack<Bracket>* brackets)
+	BFBCInstruction(stack<Bracket>* brackets)
 		: BFInstruction()
 	{
 		this->tag = ']';
 		this->optimizable = false;
-		this->totalBracketsCount = totalBracketsCount;
 		this->brackets = brackets;
 	}
 
