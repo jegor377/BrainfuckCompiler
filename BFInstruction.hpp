@@ -14,7 +14,6 @@ protected:
 	unsigned countToRepeat;
 	char tag;
 	bool optimizable;
-	bool optimalized;
 
 public:
 
@@ -22,7 +21,6 @@ public:
 		this->countToRepeat = 1;
 		this->tag = 0;
 		this->optimizable = true;
-		this->optimalized = false;
 	}
 
 	void optimalize(int count) {
@@ -39,14 +37,6 @@ public:
 
 	bool isOptimizable() {
 		return this->optimizable;
-	}
-
-	void setOptimalized() {
-		this->optimalized = true;
-	}
-
-	bool isOptimalized() {
-		return this->optimalized;
 	}
 };
 
