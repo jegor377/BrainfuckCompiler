@@ -14,13 +14,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <vector>
 #include <string>
 #include <stack>
+#include "Brackets.hpp"
+#include "BFOptimizer.hpp"
+#include "BFInstruction.hpp"
 
 using namespace std;
-
-struct Bracket {
-	string startLabel;
-	string endLabel;
-};
 
 class BFCompiler {
 	string code;
@@ -56,69 +54,65 @@ private:
 	}
 
 	vector<string> createProgram() {
-		vector<string> program;
+		vector<BFInstruction*> program;
+		vector<string> retCode;
 		stack<Bracket> brackets;
-		auto totalBracketsCount = 0;
+		unsigned int totalBracketsCount = 0;
+		BFOptimizer optimizer(&totalBracketsCount, &brackets);
 
-		program.push_back("mov ebx, memory");
-		program.push_back("mov ebp, 0");
+		retCode.push_back("mov ebx, memory");
+		retCode.push_back("mov ebp, 0");
 		for(int i = 0; i < this->code.length(); i++) {
-			switch(code[i]) {
-			case '>':
-				program.push_back("inc ebp");
-				break;
-			case '<':
-				program.push_back("dec ebp");
-				break;
-			case '+':
-				program.push_back("inc byte [ebx + ebp*1]");
-				break;
-			case '-':
-				program.push_back("dec byte [ebx + ebp*1]");
-				break;
-			case '.':
-				program.push_back("mov al, [ebx + ebp*1]");
-				program.push_back("push eax");
-				program.push_back("call _putchar");
-				program.push_back("add esp, 4");
-				break;
-			case ',':
-				program.push_back("call _getchar");
-				program.push_back("mov byte [ebx + ebp*1], al");
-				program.push_back("mov eax, 0");
-				break;
-			case '[':
-				{
-					auto startBracketName = "SB" + to_string(totalBracketsCount);
-					auto endBracketName = "EB" + to_string(totalBracketsCount);
-					auto bracket = Bracket{
-						startBracketName,
-						endBracketName
-					};
-					brackets.push(bracket);
-					program.push_back((startBracketName + ":"));
-					program.push_back("cmp byte [ebx + ebp*1], 0");
-					program.push_back(("je " + endBracketName));
-					totalBracketsCount++;
-				}
-				break;
-			case ']':
-				{
-					auto bracket = brackets.top();
-					program.push_back(("jmp " + bracket.startLabel));
-					program.push_back((bracket.endLabel + ":"));
-					brackets.pop();
-				}
-				break;
+			try {
+				program.push_back( optimizer.getInstruction(this->code[i]) );
+			} catch(string errInfo) {
+				;
 			}
 		}
 
+		auto optimalizedCode = optimalizeCode(program);
+		retCode.insert(end(retCode), begin(optimalizedCode), end(optimalizedCode));
+
 		if(!brackets.empty()) {
-			string errorInfo = "Brackets error.";
+			string errorInfo = "Non paired brackets.";
 			throw errorInfo;
 		}
 
-		return program;
+		return retCode;
+	}
+
+	vector<string> optimalizeCode(vector<BFInstruction*> instructions) {
+		vector<string> code;
+		vector<BFInstruction*> optimalizedInstructions;
+
+		int i=0;
+		while(i<instructions.size()) {
+			auto instruction = instructions[i];
+			auto offset = getInstructionCount(instructions, i);
+			instruction->optimalize(offset);
+			auto instructionCode = instruction->getInstructions();
+			code.insert(end(code), begin(instructionCode), end(instructionCode));
+			i += offset;
+		}
+
+		return code;
+	}
+
+	int getInstructionCount(vector<BFInstruction*> instructions, int id) {
+		auto instruction = instructions[id];
+		if((id + 1) < instructions.size()) {
+			if(instruction->isOptimizable()) {
+				if(instructions[id+1]->getTag() == instruction->getTag()) {
+					return getInstructionCount(instructions, id + 1) + 1;
+				} else {
+					return 1;
+				}
+			} else {
+				return 1;
+			}
+		} else {
+			return 1;
+		}
 	}
 };
 

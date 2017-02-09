@@ -19,7 +19,7 @@ using namespace std;
 int main(int argc, char* argv[]) {
 	if(argc != 3) {
 		cout<<"Brainfuck compiler 1.0 by Igor Santarek."<<endl;
-		cout<<"(c) 2017 Igor Santarek. All rights reserved."<<endl<<endl;
+		cout<<"MIT License 2017 Igor Santarek."<<endl<<endl;
 		cout<<"Usage: <input file path> <output file path>"<<endl;
 		return 1;
 	}
@@ -33,28 +33,29 @@ int main(int argc, char* argv[]) {
 		while(getline(ifile, line)) {
 			code += line;
 		}
-		
+		vector<string> compiledCode;
+		try {
+			BFCompiler compiler(code.c_str());
+			compiledCode = compiler.compile();
+		} catch(string errorInfo) {
+			cout<<errorInfo<<endl;
+			return 1;
+		}
+
 		ofile.open(argv[2]);
 
 		if(ofile.is_open()) {
-			BFCompiler compiler(code.c_str());
-			try {
-				auto compiledCode = compiler.compile();
-				for(const auto line : compiledCode) {
-					ofile<<line<<endl;
-				}
-			} catch(string errorInfo) {
-				cout<<errorInfo<<endl;
-				return 1;
+			for(const auto line : compiledCode) {
+				ofile<<line<<endl;
 			}
 			ofile.close();
 		} else {
-			cout<<"Cannot to save file."<<endl;
+			cout<<"Cannot to save output file."<<endl;
 		}
 
 		ifile.close();
 	} else {
-		cout<<"Cannot to load file."<<endl;
+		cout<<"Cannot to load input file."<<endl;
 		return 1;
 	}
 
